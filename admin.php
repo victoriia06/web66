@@ -119,74 +119,179 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель администратора</title>
     <style>
-        /* Стили остаются без изменений */
+        /* ОСНОВНЫЕ СТИЛИ */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2 {
+            color: #2c3e50;
+        }
+        
+        /* СТИЛИ ТАБЛИЦ */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        /* СТИЛИ КНОПОК */
+        .btn {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 2px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-edit {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+        }
+        
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        /* СТИЛИ СТАТИСТИКИ */
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+        
+        .stat-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        /* СООБЩЕНИЯ */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
     </style>
 </head>
 <body>
-    <h1>Панель администратора</h1>
-    <p>Вы вошли как администратор.</p>
-    
-    <h2>Данные пользователей</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Логин</th>
-                <th>ФИО</th>
-                <th>Телефон</th>
-                <th>Email</th>
-                <th>Дата рождения</th>
-                <th>Пол</th>
-                <th>Языки программирования</th>
-                <th>Биография</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($users as $user): ?>
-            <tr>
-                <td><?= htmlspecialchars($user['id']) ?></td>
-                <td><?= htmlspecialchars($user['login']) ?></td>
-                <td><?= htmlspecialchars($user['fio']) ?></td>
-                <td><?= htmlspecialchars($user['tel']) ?></td>
-                <td><?= htmlspecialchars($user['email']) ?></td>
-                <td><?= htmlspecialchars($user['birth_date']) ?></td>
-                <td><?= htmlspecialchars($user['gender'] == 'male' ? 'Мужской' : 'Женский') ?></td>
-                <td><?= implode(', ', array_map('htmlspecialchars', $user['languages'])) ?></td>
-                <td><?= nl2br(htmlspecialchars($user['bio'])) ?></td>
-                <td>
-                    <form class="action-form" method="POST" action="admin.php">
-                        <input type="hidden" name="edit_id" value="<?= $user['id'] ?>">
-                        <button type="submit" class="edit-btn">Редактировать</button>
-                    </form>
-                    <form class="action-form" method="POST" action="admin.php" onsubmit="return confirm('Вы уверены, что хотите удалить этого пользователя?');">
-                        <input type="hidden" name="delete_id" value="<?= $user['id'] ?>">
-                        <button type="submit" class="delete-btn">Удалить</button>
-                    </form>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    
-    <div class="stats">
-        <h2>Статистика по языкам программирования</h2>
+    <div class="container">
+        <h1>Панель администратора</h1>
+        
+        <?php if (isset($_GET['deleted'])): ?>
+            <div class="alert alert-success">
+                Пользователь успешно удален
+            </div>
+        <?php endif; ?>
+        
+        <h2>Список пользователей</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Язык программирования</th>
-                    <th>Количество пользователей</th>
+                    <th>ID</th>
+                    <th>Логин</th>
+                    <th>ФИО</th>
+                    <th>Телефон</th>
+                    <th>Email</th>
+                    <th>Дата рождения</th>
+                    <th>Действия</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($languageStats as $stat): ?>
+                <?php foreach ($users as $user): ?>
                 <tr>
-                    <td><?= htmlspecialchars($stat['name']) ?></td>
-                    <td><?= htmlspecialchars($stat['user_count']) ?></td>
+                    <td><?= htmlspecialchars($user['id']) ?></td>
+                    <td><?= htmlspecialchars($user['login']) ?></td>
+                    <td><?= htmlspecialchars($user['fio']) ?></td>
+                    <td><?= htmlspecialchars($user['tel']) ?></td>
+                    <td><?= htmlspecialchars($user['email']) ?></td>
+                    <td><?= htmlspecialchars($user['birth_date']) ?></td>
+                    <td>
+                        <a href="edit.php?id=<?= $user['id'] ?>" class="btn btn-edit">Редактировать</a>
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="delete_id" value="<?= $user['id'] ?>">
+                            <button type="submit" class="btn btn-delete" 
+                                    onclick="return confirm('Удалить пользователя <?= htmlspecialchars($user['fio']) ?>?')">
+                                Удалить
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
+        
+        <div class="stats">
+            <h2>Статистика по языкам программирования</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Язык</th>
+                        <th>Количество пользователей</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($language_stats as $stat): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($stat['name']) ?></td>
+                        <td><?= htmlspecialchars($stat['count']) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>
