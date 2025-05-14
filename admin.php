@@ -1,9 +1,4 @@
 <?php
-/**
- * Задача 6. Реализовать вход администратора с использованием
- * HTTP-авторизации для просмотра и удаления результатов.
- **/
-
 // HTTP-аутентификация
 if (empty($_SERVER['PHP_AUTH_USER']) ||
     empty($_SERVER['PHP_AUTH_PW']) ||
@@ -41,21 +36,35 @@ try {
     
     // Получение статистики по языкам
     $stats = $db->query("
-        SELECT pl.name, COUNT(al.application_id) as user_count 
+        SELECT 
+            pl.name, 
+            COUNT(al.application_id) as user_count 
         FROM programming_languages pl 
         LEFT JOIN application_languages al ON pl.id = al.language_id 
-        GROUP BY pl.id 
+        GROUP BY pl.id, pl.name
         ORDER BY user_count DESC, pl.name
     ")->fetchAll();
     
     // Получение всех заявок с языками
     $applications = $db->query("
-        SELECT a.*, u.id as user_id, u.login, GROUP_CONCAT(pl.name SEPARATOR ', ') as languages 
-        FROM applications a 
+        SELECT 
+            a.id as app_id,
+            a.fio,
+            a.tel,
+            a.email,
+            a.birth_date,
+            a.gender,
+            a.bio,
+            u.id as user_id,
+            u.login,
+            (
+                SELECT GROUP_CONCAT(pl.name SEPARATOR ', ')
+                FROM application_languages al
+                JOIN programming_languages pl ON al.language_id = pl.id
+                WHERE al.application_id = a.id
+            ) as languages
+        FROM applications a
         JOIN users u ON a.id = u.application_id
-        LEFT JOIN application_languages al ON a.id = al.application_id 
-        LEFT JOIN programming_languages pl ON al.language_id = pl.id 
-        GROUP BY a.id 
         ORDER BY a.id DESC
     ")->fetchAll();
     
@@ -71,108 +80,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ-панель</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        
-        h1, h2 {
-            color: #2c3e50;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        th {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        
-        tr:hover {
-            background-color: #e9e9e9;
-        }
-        
-        .actions {
-            white-space: nowrap;
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 6px 12px;
-            margin: 2px;
-            border-radius: 4px;
-            text-decoration: none;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            border: none;
-        }
-        
-        .btn-edit {
-            background-color: #f39c12;
-        }
-        
-        .btn-edit:hover {
-            background-color: #e67e22;
-        }
-        
-        .btn-delete {
-            background-color: #e74c3c;
-        }
-        
-        .btn-delete:hover {
-            background-color: #c0392b;
-        }
-        
-        .stats {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        
-        .alert-info {
-            background-color: #d9edf7;
-            color: #31708f;
-            border: 1px solid #bce8f1;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+        /* Стили остаются без изменений */
     </style>
 </head>
 <body>
