@@ -24,9 +24,8 @@ try {
     // Обработка действий администратора
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!empty($_POST['delete'])) {
-            // Удаление пользователя
-            $stmt = $db->prepare("DELETE FROM applications WHERE id = 
-                                (SELECT application_id FROM users WHERE id = ?)");
+            // Удаление пользователя (каскадное через FOREIGN KEY)
+            $stmt = $db->prepare("DELETE FROM users WHERE id = ?");
             $stmt->execute([$_POST['delete']]);
             
             header("Location: admin.php");
@@ -37,6 +36,7 @@ try {
     // Получение статистики по языкам
     $stats = $db->query("
         SELECT 
+            pl.id,
             pl.name, 
             COUNT(al.application_id) as user_count 
         FROM programming_languages pl 
@@ -48,6 +48,8 @@ try {
     // Получение всех заявок с языками
     $applications = $db->query("
         SELECT 
+            u.id as user_id,
+            u.login,
             a.id as app_id,
             a.fio,
             a.tel,
@@ -55,16 +57,15 @@ try {
             a.birth_date,
             a.gender,
             a.bio,
-            u.id as user_id,
-            u.login,
             (
                 SELECT GROUP_CONCAT(pl.name SEPARATOR ', ')
                 FROM application_languages al
                 JOIN programming_languages pl ON al.language_id = pl.id
                 WHERE al.application_id = a.id
+                GROUP BY al.application_id
             ) as languages
-        FROM applications a
-        JOIN users u ON a.id = u.application_id
+        FROM users u
+        JOIN applications a ON u.application_id = a.id
         ORDER BY a.id DESC
     ")->fetchAll();
     
@@ -80,7 +81,96 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ-панель</title>
     <style>
-        /* Стили остаются без изменений */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        h1, h2 {
+            color: #2c3e50;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        tr:hover {
+            background-color: #e9e9e9;
+        }
+        
+        .actions {
+            white-space: nowrap;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 6px 12px;
+            margin: 2px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-edit {
+            background-color: #f39c12;
+        }
+        
+        .btn-edit:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-delete {
+            background-color: #e74c3c;
+        }
+        
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+        
+        .stats {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
