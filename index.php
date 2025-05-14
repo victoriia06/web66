@@ -86,10 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // ... существующий код валидации ...
 
-    // Если ошибок нет, сохраняем данные в БД
-    $user = 'uXXXXX';
-    $pass = 'YYYYYYY';
-    $dbname = 'uXXXXX';
+    // Подключение к базе данных
+    $user = 'u70422';
+    $pass = '4545635';
+    $dbname = 'u70422';
+    $db = null;
     
     try {
         $db = new PDO("mysql:host=localhost;dbname=$dbname", $user, $pass, [
@@ -182,7 +183,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         header('Location: ?save=1');
         exit();
     } catch (PDOException $e) {
-        $db->rollBack();
+        if ($db) {
+            $db->rollBack();
+        }
         $_SESSION['formErrors'] = ['Ошибка при сохранении данных: ' . $e->getMessage()];
         $_SESSION['oldValues'] = $_POST;
         
