@@ -26,9 +26,9 @@ $fieldErrors = $_SESSION['fieldErrors'] ?? [];
 // Если пользователь авторизован, загружаем его данные
 if (!empty($_SESSION['login'])) {
     try {
-        $user = 'u70422';
-        $pass = '4545635';
-        $dbname = 'u70422';
+        $user = 'uXXXXX';
+        $pass = 'YYYYYY';
+        $dbname = 'uXXXXX';
         $db = new PDO("mysql:host=localhost;dbname=$dbname", $user, $pass);
         
         // Получаем данные пользователя
@@ -87,9 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // ... существующий код валидации ...
 
     // Подключение к базе данных
-    $user = 'u70422';
-    $pass = '4545635';
-    $dbname = 'u70422';
+    $user = 'uXXXXX';
+    $pass = 'YYYYYY';
+    $dbname = 'uXXXXX';
     $db = null;
     
     try {
